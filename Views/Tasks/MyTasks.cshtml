@@ -1,0 +1,63 @@
+@model List<TaskFlow.ViewModels.TaskViewModel>
+@{ ViewData["Title"] = "My Tasks"; }
+
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <div class="page-title">My Tasks</div>
+        <div class="page-subtitle">@Model.Count task(s) assigned to you</div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <i class="bi bi-check2-circle" style="font-size:48px;color:#d1d5db;"></i>
+        <h5 class="mt-3" style="color:#374151;">All clear!</h5>
+        <p class="text-muted" style="font-size:13.5px;">No tasks assigned to you right now.</p>
+    </div>
+}
+else
+{
+    var grouped = Model.GroupBy(t => t.Status).OrderBy(g => (int)g.Key);
+    var statusColors = new Dictionary<TaskFlow.Models.TaskStatus, string>
+    {
+        [TaskFlow.Models.TaskStatus.Todo]       = "#9ca3af",
+        [TaskFlow.Models.TaskStatus.InProgress] = "#3b82f6",
+        [TaskFlow.Models.TaskStatus.Review]     = "#f59e0b",
+        [TaskFlow.Models.TaskStatus.Done]       = "#10b981"
+    };
+
+    foreach (var group in grouped)
+    {
+        <div class="mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div style="width:8px;height:8px;border-radius:50%;background:@statusColors[group.Key];"></div>
+                <h6 style="font-size:13px;font-weight:700;color:#374151;margin:0;">
+                    @group.Key.ToString() — @group.Count()
+                </h6>
+            </div>
+            <div class="d-flex flex-column gap-2">
+                @foreach (var task in group)
+                {
+                    <a asp-action="Details" asp-route-id="@task.Id" class="task-item text-decoration-none">
+                        <div class="task-status-dot" style="background:@statusColors[task.Status];"></div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div style="font-size:13.5px;font-weight:600;color:#1f2937;@(task.Status == TaskFlow.Models.TaskStatus.Done ? "text-decoration:line-through;color:#9ca3af;" : "")">
+                                @task.Title
+                            </div>
+                            <div style="font-size:12px;color:#9ca3af;">@task.ProjectName</div>
+                        </div>
+                        <span class="badge-priority priority-@task.Priority.ToString().ToLower()">@task.Priority</span>
+                        @if (task.DueDate.HasValue)
+                        {
+                            <span style="font-size:12px;color:@(task.IsOverdue ? "#ef4444" : "#9ca3af");flex-shrink:0;">
+                                <i class="bi bi-calendar3"></i> @task.DueDate.Value.ToString("MMM d")
+                            </span>
+                        }
+                        <i class="bi bi-chevron-right" style="color:#d1d5db;"></i>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+}

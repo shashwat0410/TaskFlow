@@ -1,0 +1,69 @@
+@model TaskFlow.ViewModels.ProjectViewModel
+@{ ViewData["Title"] = "New Project"; }
+
+<div style="max-width: 600px;">
+    <div class="page-header">
+        <div class="d-flex align-items-center gap-3 mb-1">
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+            <div class="page-title mb-0">New Project</div>
+        </div>
+        <div class="page-subtitle">Set up a new project to track your work.</div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 mb-3" style="font-size:13px;border-radius:8px;"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Project Name *</label>
+                    <input asp-for="Name" class="form-control" placeholder="e.g. Website Redesign" />
+                    <span asp-validation-for="Name" class="text-danger" style="font-size:12px;"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="What is this project about?"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Project Color</label>
+                    <div class="color-swatches">
+                        @{
+                            var colors = new[] { "#6366f1","#8b5cf6","#ec4899","#ef4444","#f97316","#f59e0b","#10b981","#14b8a6","#3b82f6","#06b6d4","#84cc16","#78716c" };
+                        }
+                        @foreach (var color in colors)
+                        {
+                            <div class="color-swatch" data-color="@color" style="background:@color;"></div>
+                        }
+                    </div>
+                    <input type="hidden" asp-for="Color" id="colorInput" value="#6366f1" />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label asp-for="StartDate" class="form-label">Start Date</label>
+                        <input asp-for="StartDate" type="date" class="form-control"
+                               value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="DueDate" class="form-label">Due Date</label>
+                        <input asp-for="DueDate" type="date" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Status" class="form-label">Status</label>
+                    <select asp-for="Status" class="form-select"
+                            asp-items="Html.GetEnumSelectList<TaskFlow.Models.ProjectStatus>()"></select>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

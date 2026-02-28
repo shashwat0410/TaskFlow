@@ -1,0 +1,163 @@
+@model TaskFlow.ViewModels.DashboardViewModel
+@{ ViewData["Title"] = "Dashboard"; }
+
+@Html.AntiForgeryToken()
+
+<!-- Page Header -->
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <div class="page-title">Good @(DateTime.Now.Hour < 12 ? "morning" : DateTime.Now.Hour < 17 ? "afternoon" : "evening"), @Model.UserName.Split(' ')[0] 👋</div>
+        <div class="page-subtitle">Here's what's happening with your projects today.</div>
+    </div>
+    <a asp-controller="Projects" asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> New Project
+    </a>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-icon indigo"><i class="bi bi-folder2-open"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalProjects</div>
+                <div class="stat-label">Active Projects</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-check2-all"></i></div>
+            <div>
+                <div class="stat-value">@Model.CompletedTasks</div>
+                <div class="stat-label">Tasks Completed</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="bi bi-list-task"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalTasks</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-icon red"><i class="bi bi-exclamation-triangle"></i></div>
+            <div>
+                <div class="stat-value">@Model.OverdueTasks</div>
+                <div class="stat-label">Overdue Tasks</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header">Tasks by Status</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-header">Tasks by Priority</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Projects + My Tasks -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                Recent Projects
+                <a asp-controller="Projects" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="font-size:11.5px;">View all</a>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.RecentProjects.Any())
+                {
+                    <div class="p-4 text-center text-muted" style="font-size:13px;">No projects yet. <a asp-controller="Projects" asp-action="Create">Create one!</a></div>
+                }
+                else
+                {
+                    @foreach (var p in Model.RecentProjects)
+                    {
+                        <a asp-controller="Projects" asp-action="Details" asp-route-id="@p.Id"
+                           class="d-flex align-items-center gap-3 px-4 py-3 border-bottom text-decoration-none text-reset"
+                           style="transition: background 0.15s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+                            <div style="width:36px;height:36px;border-radius:8px;background:@p.Color;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;">
+                                @p.Name.Substring(0,1).ToUpper()
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@p.Name</div>
+                                <div class="progress mt-1" style="height:4px;">
+                                    <div class="progress-bar" style="width:@p.ProgressPercent%;background:@p.Color;"></div>
+                                </div>
+                            </div>
+                            <div style="font-size:12px;color:#6b7280;flex-shrink:0;">@p.ProgressPercent%</div>
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                My Tasks
+                <a asp-controller="Tasks" asp-action="MyTasks" class="btn btn-sm btn-outline-secondary" style="font-size:11.5px;">View all</a>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.MyTasks.Any())
+                {
+                    <div class="p-4 text-center text-muted" style="font-size:13px;">No tasks assigned to you yet.</div>
+                }
+                else
+                {
+                    @foreach (var t in Model.MyTasks.Take(6))
+                    {
+                        <a asp-controller="Tasks" asp-action="Details" asp-route-id="@t.Id"
+                           class="d-flex align-items-center gap-3 px-4 py-3 border-bottom text-decoration-none text-reset"
+                           style="transition: background 0.15s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+                            <div class="task-status-dot" style="background:@(t.Status == TaskFlow.Models.TaskStatus.Done ? "#10b981" : t.Status == TaskFlow.Models.TaskStatus.InProgress ? "#3b82f6" : "#9ca3af");"></div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;@(t.Status == TaskFlow.Models.TaskStatus.Done ? "text-decoration:line-through;color:#9ca3af;" : "")">@t.Title</div>
+                                <div style="font-size:11.5px;color:#9ca3af;">@t.ProjectName</div>
+                            </div>
+                            @if (t.DueDate.HasValue)
+                            {
+                                <div style="font-size:11.5px;color:@(t.IsOverdue ? "#ef4444" : "#9ca3af");flex-shrink:0;">
+                                    <i class="bi bi-calendar3"></i> @t.DueDate.Value.ToString("MMM dd")
+                                </div>
+                            }
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    (function () {
+        var tasksByStatus = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TasksByStatus));
+        var tasksByPriority = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TasksByPriority));
+        initDashboardCharts(tasksByStatus, tasksByPriority);
+    })();
+</script>
+}

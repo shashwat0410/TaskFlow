@@ -1,0 +1,42 @@
+@model TaskFlow.ViewModels.LoginViewModel
+@{ ViewData["Title"] = "Login"; Layout = "_Layout"; }
+
+<div class="auth-card">
+    <div class="auth-logo">
+        <div class="brand-icon">
+            <i class="bi bi-layers-half"></i>
+        </div>
+        <h1>Welcome back</h1>
+        <p>Sign in to your TaskFlow account</p>
+    </div>
+
+    <form asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 mb-3" style="font-size:13px;border-radius:8px;"></div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label">Email address</label>
+            <input asp-for="Email" class="form-control" placeholder="you@example.com" autocomplete="email" />
+            <span asp-validation-for="Email" class="text-danger" style="font-size:12px;"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label">Password</label>
+            <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="text-danger" style="font-size:12px;"></span>
+        </div>
+
+        <div class="mb-4 d-flex align-items-center justify-content-between">
+            <div class="form-check">
+                <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
+                <label asp-for="RememberMe" class="form-check-label" style="font-size:13px;">Remember me</label>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Sign in <i class="bi bi-arrow-right ms-1"></i></button>
+    </form>
+
+    <p class="text-center mt-4" style="font-size:13px; color:#6b7280;">
+        Don't have an account? <a asp-action="Register" style="color:#6366f1; font-weight:600;">Create one</a>
+    </p>
+</div>
